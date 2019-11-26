@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/rauna/Documents/EthanTriangle/main.cpp
+iostream
+-
+fstream
+-
+string
+-
+time.h
+-
+math.h
+-
+
