@@ -1,3 +1,0 @@
-C:/Users/rauna/Documents/Triangle Project/cmake-build-debug/CMakeFiles/Triangle_Project.dir
-C:/Users/rauna/Documents/Triangle Project/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/rauna/Documents/Triangle Project/cmake-build-debug/CMakeFiles/rebuild_cache.dir

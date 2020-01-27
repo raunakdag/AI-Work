@@ -1,3 +1,0 @@
-C:/Users/rauna/Documents/EthanTriangle/cmake-build-debug/CMakeFiles/EthanTriangle.dir
-C:/Users/rauna/Documents/EthanTriangle/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/rauna/Documents/EthanTriangle/cmake-build-debug/CMakeFiles/rebuild_cache.dir

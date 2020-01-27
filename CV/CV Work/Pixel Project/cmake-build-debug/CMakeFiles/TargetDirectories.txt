@@ -1,3 +1,0 @@
-C:/Users/rauna/Documents/CV Work/Pixel Project/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-C:/Users/rauna/Documents/CV Work/Pixel Project/cmake-build-debug/CMakeFiles/Pixel_Project.dir
-C:/Users/rauna/Documents/CV Work/Pixel Project/cmake-build-debug/CMakeFiles/edit_cache.dir
