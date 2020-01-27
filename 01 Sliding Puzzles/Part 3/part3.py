@@ -419,7 +419,37 @@ def extension_d():
           str(nodes_astar / (endASTAR - startASTAR)))
 
 
+# This is the new a star function for extension A!! :)
+def new_a_star(board_state, size, multiplier_value):
+    goal = find_goal(board_state.replace("\n", ""))
+
+    closed = set()
+    parents = {
+        board_state.replace('\n', ''): "start"
+    }
+
+    start_node = (a_star_heuristic(board_state, size), board_state, 0)
+    heap = []
+    heappush(heap, start_node)
+
+    while heap:
+        current = heappop(heap)
+        if current[1] == goal:
+            return current[2]
+
+        if current[1] not in closed:
+            closed.add(current[1])
+            for board in get_children(current[1], size):
+                heappush(heap, (multiplier_value *
+                                current[2] + a_star_heuristic(board, size), board, current[2] + 1))
+                if board not in parents:
+                    parents[board] = current[1]
+
+    return None
+
 # EXTENSION E
+
+
 def extension_e_3(num):
     puzzle = ''.join(random.sample('ABCDEFGH.', len('ABCDEFGH.')))
     while(parity_check(puzzle, 3) is not True):

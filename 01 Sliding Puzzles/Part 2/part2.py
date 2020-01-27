@@ -7,6 +7,7 @@ import collections
 import time
 import heapq
 from heapq import heappush, heappop
+import sys
 
 # Change current working directory, only needed for Atom
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -157,7 +158,7 @@ def parity_check(board_state, size_string):
 def kDFS(board_state, size, k):
     goal = find_goal(board_state.replace("\n", ""))
 
-    start_node = (board_state.replace("\n", ""), 0, {board_state})
+    start_node = (board_state.replace("\n", ""), 0, {board_state}, [board_state])
     fringe = []
     fringe.append(start_node)
 
@@ -167,18 +168,17 @@ def kDFS(board_state, size, k):
 
     while(fringe):
         current = fringe.pop()
-        # print(current)
         if(current[0] == goal):
-            steps = dfs_path(current[0], parents, size)
-
-            return steps
+            return current[1]
         if current[1] < k:
             for board in get_children(current[0], size):
-                # print(str(board) + " " + str(current[2]))
                 if board not in current[2]:
                     temp_set = {board}
                     unionized_set = current[2].union(temp_set)
-                    fringe.append((board, current[1] + 1, unionized_set))
+
+                    temp_list = current[3]
+                    temp_list.append(current[0])
+                    fringe.append((board, current[1] + 1, unionized_set, temp_list))
                     if board not in parents:
                         parents[board] = current[0]
 
@@ -213,9 +213,9 @@ def a_star(board_state, size):
         # print(current)
         if current[1] == goal:
             # print('made it to goal')
-            steps = dfs_path(current[1], parents, size)
+            # steps = dfs_path(current[1], parents, size)
 
-            return steps
+            return current[2]
 
         if current[1] not in closed:
             closed.add(current[1])
@@ -239,65 +239,85 @@ def a_star_heuristic(board_state, size):
     return inversions
 
 
-filename = 'slide_puzzle_tests_2.txt'
-# filename = sys.argv[1]
-with open(filename) as puzzles:
-    count = 0
-    startTime = time.perf_counter()
-    for puzzle in puzzles:
-        size_string, board_state, type = puzzle.split()[0], puzzle.split()[1], puzzle.split()[2]
+# filename = 'slide_puzzle_tests_2.txt'
+def main():
+    filename = sys.argv[1]
+    with open(filename) as puzzles:
+        count = 0
+        startTime = time.perf_counter()
+        for puzzle in puzzles:
+            size_string, board_state, type = puzzle.split()[0], puzzle.split()[1], puzzle.split()[2]
 
-        size = int(size_string)
-        do_puzzles = True
+            size = int(size_string)
+            do_puzzles = True
 
-        parity_start = time.perf_counter()
-        do_puzzles = parity_check(board_state, size)
-        parity_end = time.perf_counter()
+            parity_start = time.perf_counter()
+            do_puzzles = parity_check(board_state, size)
+            parity_end = time.perf_counter()
 
-        if do_puzzles:
-            if type == 'I':
-                startTime = time.perf_counter()
+            if do_puzzles:
+                if type == 'I':
+                    startTime = time.perf_counter()
+                    print("Line: " + str(count) + " " + board_state +
+                          ", ID-DFS - " + str((id_dfs(board_state, size))), end="")
+                    end = time.perf_counter()
+                    print(" moves in " + str(end-startTime) + " seconds")
+
+                elif type == 'B':
+                    startTime = time.perf_counter()
+                    print("Line: " + str(count) + " " + board_state +
+                          ", BFS - " + str(len(bfs_shortest_path(board_state, size))), end="")
+                    end = time.perf_counter()
+                    print(" moves in " + str(end-startTime) + " seconds")
+
+                elif type == 'A':
+                    startTime = time.perf_counter()
+                    print("Line: " + str(count) + " " + board_state +
+                          ", A* - " + str((a_star(board_state, size))), end="")
+                    end = time.perf_counter()
+                    print(" moves in " + str(end-startTime) + " seconds")
+
+                elif type == '!':
+                    startTime = time.perf_counter()
+                    print("Line: " + str(count) + " " + board_state +
+                          ", ID-DFS - " + str((id_dfs(board_state, size))), end="")
+                    end = time.perf_counter()
+                    print(" moves in " + str(end-startTime) + " seconds")
+
+                    startTime = time.perf_counter()
+                    print("Line: " + str(count) + " " + board_state +
+                          ", BFS - " + str(len(bfs_shortest_path(board_state, size))), end="")
+                    end = time.perf_counter()
+                    print(" moves in " + str(end-startTime) + " seconds")
+
+                    startTime = time.perf_counter()
+                    print("Line: " + str(count) + " " + board_state +
+                          ", A* - " + str((a_star(board_state, size))), end="")
+                    end = time.perf_counter()
+                    print(" moves in " + str(end-startTime) + " seconds")
+
+            else:
                 print("Line: " + str(count) + " " + board_state +
-                      ", ID-DFS - " + str(len(id_dfs(board_state, size))), end="")
-                end = time.perf_counter()
-                print(" moves in " + str(end-startTime) + " seconds")
+                      ", no solution determined in " + str(parity_end - parity_start) + " seconds")
 
-            elif type == 'B':
-                startTime = time.perf_counter()
-                print("Line: " + str(count) + " " + board_state +
-                      ", BFS - " + str(len(bfs_shortest_path(board_state, size))), end="")
-                end = time.perf_counter()
-                print(" moves in " + str(end-startTime) + " seconds")
+            print()
+            count += 1
 
-            elif type == 'A':
-                startTime = time.perf_counter()
-                print("Line: " + str(count) + " " + board_state +
-                      ", A* - " + str(len(a_star(board_state, size))), end="")
-                end = time.perf_counter()
-                print(" moves in " + str(end-startTime) + " seconds")
 
-            elif type == '!':
-                startTime = time.perf_counter()
-                print("Line: " + str(count) + " " + board_state +
-                      ", ID-DFS - " + str(len(id_dfs(board_state, size))), end="")
-                end = time.perf_counter()
-                print(" moves in " + str(end-startTime) + " seconds")
+print("A-Star 31 Length 3x3")
+start = time.perf_counter()
+a_star('HFGBEDC.A', 3)
+end = time.perf_counter()
+print(str(end-start) + ' seconds')
 
-                startTime = time.perf_counter()
-                print("Line: " + str(count) + " " + board_state +
-                      ", BFS - " + str(len(bfs_shortest_path(board_state, size))), end="")
-                end = time.perf_counter()
-                print(" moves in " + str(end-startTime) + " seconds")
+print("A-Star 31 Length 4x4")
+start = time.perf_counter()
+a_star('EFHA.BCDMJLONGIK', 4)
+end = time.perf_counter()
+print(str(end-start) + ' seconds')
 
-                startTime = time.perf_counter()
-                print("Line: " + str(count) + " " + board_state +
-                      ", A* - " + str(len(a_star(board_state, size))), end="")
-                end = time.perf_counter()
-                print(" moves in " + str(end-startTime) + " seconds")
-
-        else:
-            print("Line: " + str(count) + " " + board_state +
-                  ", no solution determined in " + str(parity_end - parity_start) + " seconds")
-
-        print()
-        count += 1
+print("A-Star 21 Length 5x5")
+start = time.perf_counter()
+a_star('BFCDEKAHIJPGLMOUW.NSVRQXT', 5)
+end = time.perf_counter()
+print(str(end-start) + ' seconds')

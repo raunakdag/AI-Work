@@ -1,0 +1,33 @@
+Assertions
+(?=...) look ahead
+(?!...) neg. look ahead
+(?<=...) look behind
+(?<!...) neg. look behind
+-> do not capture
+-> look behinds are fixed width
+
+
+4-letter palindrome (abba)
+/(\w)(\w)\2\1/
+
+Matches words which begins and starts with same letter
+/\b(\w)\w*\1\b/i
+
+In 'the girl', will capture 'the'
+/(?=\w+\s girl)\w+/
+
+Word following 'the'
+/(?<=\bthe\s)\w+/
+
+Match on any word without an 'e'
+/\b(?!\w*e)\w+/
+
+Any word that starts and ends differently
+/\b(?=(\w)+)(?!\1)\w+/
+
+
+Any word where two distinct characters occur at least twice
+yes (abba) (baba)
+not aaaa
+yes aabbbb
+yes cadabeb

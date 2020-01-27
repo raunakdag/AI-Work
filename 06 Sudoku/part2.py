@@ -1,204 +1,216 @@
 import os
-import math
 import sys
+import copy
 
 # Change current working directory, only needed for Atom
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-# symbol_set = set()
 
+def set_globals(puzzle):
+    global N, sqrtN, subblock_height, subblock_width, symbol_set, constraints, neighbors
 
-def get_dimensions(puzzle):
-    global size_puzzle
-    global N
-    global height
-    global width
-    global symbol_set
-    global constraint_sets
-    global neighbors
-    global possibilities
+    N = len(puzzle)
+    sqrtN = int(N ** 0.5)
 
-    size_puzzle = len(puzzle)
-    constraint_sets = []
-    neighbors = []
-
-    size = int(len(puzzle))  # 81
-    N = int(size ** 0.5)  # 9
-    factorN = int(N ** 0.5)  # 3
-
-    for factor in range(factorN, 0, -1):
-        if N % factor == 0:
-            height = factor
-            width = N // height
+    start_subblock_height = int((N ** 0.5) ** 0.5)
+    for possibility in range(start_subblock_height, 0, -1):
+        if sqrtN % possibility == 0:
+            subblock_height = possibility
             break
 
+    subblock_width = int(sqrtN / subblock_height)
+
     symbol_set = set()
-    for char in "123456789ABCDEFGH"[:N]:
+    for char in "123456789ABCDEFGH"[:int(N ** 0.5)]:
         symbol_set.add(char)
 
 
-def make_constraints():
-    global size_puzzle
-    global N
-    global height
-    global width
-    global symbol_set
-    global constraint_sets
-    global neighbors
-    global possibilities
+def make_constraints(puzzle):
+    global N, sqrtN, subblock_height, subblock_width, symbol_set, constraints, neighbors
 
-    for width_coord in range(N):
-        row_set = set()
-        for height_coord in range(N):
-            row_set.add(width_coord * N + height_coord)
-        constraint_sets.append(row_set)
+    constraints = []
+    neighbors = []
 
-    for width_coord in range(N):
-        column_set = set()
-        for height_coord in range(N):
-            column_set.add(height_coord * N + width_coord)
-        constraint_sets.append(column_set)
+    # Row Constraint Sets
+    for width in range(sqrtN):
+        constraint = set()
+        for height in range(sqrtN):
+            constraint.add(width * sqrtN + height)
+        constraints.append(constraint)
 
-    for width_coord in range(width):
-        for height_coord in range(height):
-            box_set = set()
+    # Column Constraint Sets
+    for width in range(sqrtN):
+        constraint = set()
+        for height in range(sqrtN):
+            constraint.add(width + sqrtN * height)
+        constraints.append(constraint)
 
-            for width_coord2 in range(height):
-                for height_coord2 in range(width):
-                    total = ((width_coord * height) + width_coord2) * \
-                        N + (height_coord * width) + height_coord2
+    # Block Constraint Sets
+    for width in range(0, sqrtN, subblock_width):  # 0, 3, 6
+        for height in range(0, sqrtN, subblock_height):  # 0, 3, 6
+            neighbor_set = set()
+            for width_2 in range(width, width + subblock_width):
+                for height_2 in range(height, height + subblock_height):
+                    neighbor_set.add(width_2 + height_2 * sqrtN)
+            constraints.append(neighbor_set)
 
-                    box_set.add(total)
-
-            constraint_sets.append(box_set)
-
-    for index in range(size_puzzle):
+    # FINISH NEIGHBOR SETS
+    for index in range(N):
         possible_neighbors = set()
-        for constraint_set in constraint_sets:
+        for constraint_set in constraints:
             if index in constraint_set:
                 for constraint in constraint_set:
                     if index != constraint:
                         possible_neighbors.add(constraint)
-        # print(index)
-        neighbors.append(possible_neighbors)
 
-    # print(constraint_sets)
-    # print(neighbors)
+        neighbors.append(possible_neighbors)
 
 
 def print_puzzle(puzzle):
-    global size_puzzle
-    global N
-    global height
-    global width
-    global symbol_set
-    global constraint_sets
-    global neighbors
-    global possibilities
+    global N, sqrtN, subblock_height, subblock_width, symbol_set
 
-    # print()
-    for row in range(N):
-        row_print = ""
+    lines = [puzzle[i: i + sqrtN] for i in range(0, len(puzzle), sqrtN)]
 
-        for column in range(N):
-            temp = puzzle[row * N + column]
-            row_print = row_print + " " + temp + " "
-            if (column + 1) % width == 0:
-                row_print = row_print + "|"
-
-        row_print = row_print[:-2].strip()
-        print(row_print)
-
-        if (row + 1) % height == 0:
-            print(("-") * (len(row_print)))
-
-
-def get_sorted_values(puzzle, new_spot):
-    global size_puzzle
-    global N
-    global height
-    global width
-    global symbol_set
-    global constraint_sets
-    global neighbors
-    global possibilities
-
-    possible_symbols = []
-
-    for symbol in symbol_set:
-        can_append = True
-        for neighbor in neighbors[new_spot]:
-            if symbol == puzzle[neighbor]:
-                can_append = False
-                break
-        if can_append:
-            possible_symbols.append(symbol)
-
-    return possible_symbols
-
-
-def get_most_constrained_var(puzzle):
-    global size_puzzle
-    global N
-    global height
-    global width
-    global symbol_set
-    global constraint_sets
-    global neighbors
-    global possibilities
-
-    most_constrained = []
     index = 0
-    for possibility in possibilities:
-        if len(possibility) > 1:
-            most_constrained.append(index)
+    for line in lines:
+        line = '|'.join(line[i:i + subblock_width]
+                        for i in range(0, len(line), subblock_width))
+        line = ' '.join(line)
+        lines[index] = line
         index += 1
 
-    sorted_constrained = sorted(most_constrained)
+    index = 0
+    for line in lines:
+        index += 1
+        print(line)
+        if index % subblock_height == 0:
+            print('-' * len(line))
 
 
-def csp_backtracking_with_forward_looking(puzzle):
-    global size_puzzle
-    global N
-    global height
-    global width
-    global symbol_set
-    global constraint_sets
-    global neighbors
-    global possibilities
+def fwd_looking(new_possibilities, indices_one_possible_solution):
+    global N, sqrtN, symbol_set, constraints, neighbors
 
-    if '.' not in puzzle:
-        return puzzle
+    while indices_one_possible_solution:
+        index = indices_one_possible_solution.pop()
+        for neighbor in neighbors[index]:
+            initial_length = len(new_possibilities[neighbor])
+            new_possibilities[neighbor] = new_possibilities[neighbor].replace(
+                new_possibilities[index], '')
+            if initial_length != 1 and len(new_possibilities[neighbor]) == 1:
+                indices_one_possible_solution.append(neighbor)
+            elif len(new_possibilities[neighbor]) == 0:
+                return None
 
-    new_spot = get_most_constrained_var(puzzle)
-    for val in get_sorted_values(puzzle, new_spot):
-        new_puzzle = assign(puzzle, new_spot, val)
-        checked_puzzle = forward_looking(new_puzzle)
-        if checked_puzzle is not None:
-            result = csp_backtracking_with_forward_looking(checked_puzzle)
-            if result is not None:
-                return result
+    return new_possibilities
+
+
+def constraint(new_possibilities):
+    global constraints, symbol_set
+    if new_possibilities is None:
+        return None
+    indices_one_possible_solution = []
+    for constraint_set in constraints:
+        for symbol in symbol_set:
+            amt_changes = 0
+            change_index = 0
+            for value in constraint_set:
+                if symbol in new_possibilities[value]:
+                    change_index = value
+                    amt_changes += 1
+            if amt_changes == 0:
+                # print('returning none')
+                return None
+            elif amt_changes == 1:
+                new_possibilities[change_index] = symbol
+                indices_one_possible_solution.append(change_index)
+
+    return fwd_looking(new_possibilities, indices_one_possible_solution)
+
+
+def backtrack(possibilities):
+    if goal_test(possibilities):
+        return possibilities
+
+    next_var = get_most_constrained_var(possibilities)
+
+    for possible_symbol in possibilities[next_var]:
+        new_possibilities = possibilities.copy()
+        new_possibilities[next_var] = possible_symbol
+
+        checked_board = fwd_looking(new_possibilities, [next_var])
+        checked_board = constraint(checked_board)
+
+        if checked_board is not None:
+            backtracked_puzzle = backtrack(checked_board)
+            if backtracked_puzzle is not None:
+                return backtracked_puzzle
+
     return None
 
 
+def get_possibilities(puzzle):
+    global symbol_set
+    possibilities = {}
+
+    for i in range(len(puzzle)):
+        if puzzle[i] == '.':
+            possibilities[i] = ''.join(symbol_set)
+        else:
+            possibilities[i] = puzzle[i]
+
+    return possibilities
+
+
+def get_most_constrained_var(possibilities):
+    min_val = 100
+    min_index = 0
+
+    for i in range(len(possibilities)):
+        if len(possibilities[i]) < min_val and len(possibilities[i]) != 1:
+            min_index = i
+            min_val = len(possibilities[i])
+
+    return min_index
+
+
+def goal_test(possibilities):
+    for possibility in possibilities:
+        if len(possibilities[possibility]) > 1:
+            return False
+    return True
+
+
+def compile(final_result):
+    str = ''
+    for i in final_result:
+        str += final_result[i]
+    return str
+
+
+def get_solved(possibilities):
+    solved = []
+    for i in range(len(possibilities)):
+        if len(possibilities[i]) == 1:
+            solved.append(i)
+    return solved
+
+
 def main(filename):
-    if filename is None:
-        filename = sys.argv[1]
-    puzzle_count = 0
     with open(filename) as file:
         for puzzle in file:
             puzzle = puzzle.replace('\n', '')
-            get_dimensions(puzzle)
-            # print("Puzzle: ")
-            # print_puzzle(puzzle)
-            make_constraints()
-            # print()
-            # print("Solution: ")
-            print(csp_backtracking_with_forward_looking(puzzle))
-            # print()
-            puzzle_count += 1
-            # print_puzzle(puzzle)
-    # print(puzzle_count)
+            set_globals(puzzle)
+            make_constraints(puzzle)
+            possibilities = get_possibilities(puzzle)
+            solved = get_solved(possibilities)
+            forwarded = fwd_looking(possibilities, solved)
+            constrainted = constraint(forwarded)
+            backtracked = backtrack(constrainted)
+            compiled = compile(backtracked)
+            # print_puzzle(compiled)
+            print(compiled)
+            # break
 
 
-main('sudoku_puzzles_2_hard.txt')
+# main(sys.argv[1])
+main("sudoku_5.txt")

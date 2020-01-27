@@ -1,128 +1,123 @@
 import os
-import math
 import sys
 
 # Change current working directory, only needed for Atom
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-# symbol_set = set()
 
+def set_globals(puzzle):
+    global N, sqrtN, subblock_height, subblock_width, symbol_set, constraints, neighbors
 
-def get_dimensions(puzzle):
-    global size_puzzle
-    global N
-    global height
-    global width
-    global symbol_set
-    global constraint_sets
-    global neighbors
+    N = len(puzzle)
+    sqrtN = int(N ** 0.5)
 
-    size_puzzle = len(puzzle)
-    constraint_sets = []
-    neighbors = []
-
-    size = int(len(puzzle))  # 81
-
-    N = int(size ** 0.5)  # 9
-
-    factorN = int(N ** 0.5)  # 3
-
-    for k in range(factorN, 0, -1):
-        if N % k == 0:
-            height = k
-            width = N // height
+    start_subblock_height = int((N ** 0.5) ** 0.5)
+    for possibility in range(start_subblock_height, 0, -1):
+        if sqrtN % possibility == 0:
+            subblock_height = possibility
             break
 
+    subblock_width = int(sqrtN / subblock_height)
+
     symbol_set = set()
-    for char in "123456789ABCDEFGH"[:N]:
+    for char in "123456789ABCDEFGH"[:int(N ** 0.5)]:
         symbol_set.add(char)
 
 
-def make_constraints():
-    global size_puzzle
-    global N
-    global height
-    global width
-    global symbol_set
-    global constraint_sets
-    global neighbors
+def make_constraints(puzzle):
+    global N, sqrtN, subblock_height, subblock_width, symbol_set, constraints, neighbors
 
-    for width_coord in range(N):
-        row_set = set()
-        for height_coord in range(N):
-            row_set.add(width_coord * N + height_coord)
-        constraint_sets.append(row_set)
+    constraints = []
+    neighbors = []
 
-    for width_coord in range(N):
-        column_set = set()
-        for height_coord in range(N):
-            column_set.add(height_coord * N + width_coord)
-        constraint_sets.append(column_set)
+    # Row Constraint Sets
+    for width in range(sqrtN):
+        constraint = set()
+        for height in range(sqrtN):
+            constraint.add(width * sqrtN + height)
+        constraints.append(constraint)
 
-    for width_coord in range(width):
-        for height_coord in range(height):
-            box_set = set()
+    # Column Constraint Sets
+    for width in range(sqrtN):
+        constraint = set()
+        for height in range(sqrtN):
+            constraint.add(width + sqrtN * height)
+        constraints.append(constraint)
 
-            for width_coord2 in range(height):
-                for height_coord2 in range(width):
-                    total = ((width_coord * height) + width_coord2) * \
-                        N + (height_coord * width) + height_coord2
+    # Block Constraint Sets
+    for width in range(0, sqrtN, subblock_width):  # 0, 3, 6
+        for height in range(0, sqrtN, subblock_height):  # 0, 3, 6
+            neighbor_set = set()
+            for width_2 in range(width, width + 3):
+                for height_2 in range(height, height + 3):
+                    # print("Width 2: " + str(width_2) + " Height 2: " + str(height_2))
+                    neighbor_set.add(width_2 + height_2 * sqrtN)
 
-                    box_set.add(total)
+            constraints.append(neighbor_set)
 
-            constraint_sets.append(box_set)
-
-    for index in range(size_puzzle):
+    # FINISH NEIGHBOR SETS
+    for index in range(N):
         possible_neighbors = set()
-        for constraint_set in constraint_sets:
+        for constraint_set in constraints:
             if index in constraint_set:
                 for constraint in constraint_set:
                     if index != constraint:
                         possible_neighbors.add(constraint)
-        # print(index)
         neighbors.append(possible_neighbors)
 
 
 def print_puzzle(puzzle):
-    global size_puzzle
-    global N
-    global height
-    global width
+    global N, sqrtN, subblock_height, subblock_width, symbol_set
+
+    lines = [puzzle[i: i + sqrtN] for i in range(0, len(puzzle), sqrtN)]
+
+    index = 0
+    for line in lines:
+        line = '|'.join(line[i:i + subblock_width]
+                        for i in range(0, len(line), subblock_width))
+        line = ' '.join(line)
+        lines[index] = line
+        index += 1
+
+    index = 0
+    for line in lines:
+        index += 1
+        print(line)
+        if index % subblock_height == 0:
+            print('-' * len(line))
+
+
+def amt_symbols(puzzle):
     global symbol_set
-    global constraint_sets
-    global neighbors
-
-    # print()
-    for row in range(N):
-        row_print = ""
-
-        for column in range(N):
-            temp = puzzle[row * N + column]
-            row_print = row_print + " " + temp + " "
-            if (column + 1) % width == 0:
-                row_print = row_print + "|"
-
-        row_print = row_print[:-2].strip()
-        print(row_print)
-
-        if (row + 1) % height == 0:
-            print(("-") * (len(row_print)))
+    symbols = {}
+    for symbol in symbol_set:
+        symbols[symbol] = puzzle.count(symbol)
+    print(symbols)
 
 
-def get_sorted_values(puzzle, new_spot):
-    global size_puzzle
-    global N
-    global height
-    global width
-    global symbol_set
-    global constraint_sets
-    global neighbors
+def backtrack(puzzle):
+    global N, sqrtN, subblock_height, subblock_width, symbol_set, constraints, neighbors
+    if '.' not in puzzle:
+        return puzzle
+
+    next_available_var = puzzle.find('.')
+
+    for value in get_sorted_values(puzzle, next_available_var):
+        new_puzzle = puzzle[:next_available_var] + str(value) + puzzle[next_available_var + 1:]
+        solution = backtrack(new_puzzle)
+        if solution is not None:
+            return solution
+    return None
+
+
+def get_sorted_values(puzzle, index_of_var):
+    global N, sqrtN, subblock_height, subblock_width, symbol_set, constraints, neighbors
 
     possible_symbols = []
 
     for symbol in symbol_set:
         can_append = True
-        for neighbor in neighbors[new_spot]:
+        for neighbor in neighbors[index_of_var]:
             if symbol == puzzle[neighbor]:
                 can_append = False
                 break
@@ -130,48 +125,29 @@ def get_sorted_values(puzzle, new_spot):
             possible_symbols.append(symbol)
 
     return possible_symbols
-
-
-def backtrack(puzzle):
-    global size_puzzle
-    global N
-    global height
-    global width
-    global symbol_set
-    global constraint_sets
-    global neighbors
-
-    if '.' not in puzzle:
-        return puzzle
-
-    new_spot = puzzle.find(".")
-
-    for value in get_sorted_values(puzzle, new_spot):
-        new_puzzle = puzzle[:new_spot] + str(value) + puzzle[new_spot + 1:]
-        solution = backtrack(new_puzzle)
-        if solution is not None:
-            return solution
-    return None
+    # FINISH GETTING THE SORTED VALUES
 
 
 def main(filename):
     if filename is None:
         filename = sys.argv[1]
-    puzzle_count = 0
     with open(filename) as file:
+        # line = 0
         for puzzle in file:
+            print(str(line))
+            # line += 1
             puzzle = puzzle.replace('\n', '')
-            get_dimensions(puzzle)
+            set_globals(puzzle)
+            # amt_symbols(puzzle)
             # print("Puzzle: ")
             # print_puzzle(puzzle)
-            make_constraints()
-            # print()
-            # print("Solution: ")
+            make_constraints(puzzle)
+            # break
+            print()
+            print("Solution: ", end='')
             print(backtrack(puzzle))
             # print()
-            puzzle_count += 1
             # print_puzzle(puzzle)
-    # print(puzzle_count)
 
 
-main(None)
+main('sudoku_puzzles_1.txt')

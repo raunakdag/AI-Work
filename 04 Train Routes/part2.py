@@ -11,6 +11,59 @@ from heapq import heappush, heappop
 from tkinter import *
 import time
 
+OPTIONS = [
+    "Albuquerque",
+    "Atlanta",
+    "Austin",
+    "Brooklyn",
+    "Calgary",
+    "Charlotte",
+    "Chicago",
+    "Chihuahua",
+    "Ciudad Juarez",
+    "Columbus",
+    "Dallas",
+    "Denver",
+    "Detroit",
+    "Edmonton",
+    "Fort Worth",
+    "Guadalajara",
+    "Hermosillo",
+    "Houston",
+    "Indianapolis",
+    "Jacksonville",
+    "Kansas City",
+    "Las Vegas",
+    "Leon",
+    "Los Angeles",
+    "Merida",
+    "Mexicali",
+    "Mexico City",
+    "Miami",
+    "Milwaukee",
+    "Minneapolis",
+    "Monterrey",
+    "Montreal",
+    "Orlando",
+    "Ottawa",
+    "Philadelphia",
+    "Phoenix",
+    "Portland",
+    "Quebec City",
+    "St Louis",
+    "San Antonio",
+    "San Diego",
+    "San Francisco",
+    "San Jose",
+    "Seattle",
+    "Tampa",
+    "Toronto",
+    "Tucson",
+    "Vancouver",
+    "Washington DC",
+    "Winnipeg"
+]
+
 # Change current working directory, only needed for Atom
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -19,13 +72,6 @@ def calcd(y1, x1, y2, x2):
 
     if y1 == y2 and x1 == x2:
         return 0
-
-    # y1 = lat1, x1 = long1
-    # y2 = lat2, x2 = long2
-    # all assumed to be in decimal degrees
-
-    # if (and only if) the input is strings
-    # use the following conversions
 
     y1 = float(y1)
     x1 = float(x1)
@@ -39,13 +85,10 @@ def calcd(y1, x1, y2, x2):
     y2 *= pi/180.0
     x2 *= pi/180.0
 
-    # approximate great circle distance with law of cosines
-
     return acos(sin(y1)*sin(y2) + cos(y1)*cos(y2)*cos(x2-x1)) * R
 
 
 def read_files():
-    start = time.perf_counter()
 
     city_to_node = {}
     with open('rrNodeCity.txt') as city_list:
@@ -81,11 +124,6 @@ def read_files():
         modlat = (lat - 10)/60  # scales to 0-1
         modlong = (long + 130)/70  # scales to 0-1
         map_locations[node] = [modlat*800, modlong*1200]
-        # print(map_locations[node])
-
-    end = time.perf_counter()
-
-    print("Time to create data structure: " + str(end-start) + " seconds")
 
     return city_to_node, node_location, neighbors, map_locations  # , edge_cost
 
@@ -170,12 +208,10 @@ def djikstra(start, goal, node_location, neighbors, ROOT, canvas, map_locations)
 
 def draw_line(canvas, y1, x1, y2, x2, col):
     x1, y1, x2, y2 = float(x1), float(y1), float(x2), float(y2)
-    # print(str(x1) + " " + str(y1))
     canvas.create_line(x1, 800-y1, x2, 800-y2, fill=col)
 
 
 def draw_all_edges(ROOT, canvas, neighbors, map_locations):
-    # print(node_location)
     ROOT.geometry("1200x800")  # sets geometry
     canvas.pack(fill=BOTH, expand=1)  # sets fill expand
     canvas.create_text(600, 80, fill="white", font="Times 36 bold",
@@ -197,11 +233,9 @@ def main():
     canvas = Canvas(ROOT, background='black')  # sets background
     draw_all_edges(ROOT, canvas, neighbors, map_locations)
 
-    # city_to_node, node_location, neighbors, edge_cost = read_files()
-
-    city1, city2 = sys.argv[1], sys.argv[2]
-    # city1 = 'Ciudad Juarez'
-    # city2 = 'Montreal'
+    # city1, city2 = sys.argv[1], sys.argv[2]
+    city1 = 'Ciudad Juarez'
+    city2 = 'Montreal'
 
     start = time.perf_counter()
     cost = djikstra(city_to_node[city1], city_to_node[city2],
@@ -209,7 +243,7 @@ def main():
     end = time.perf_counter()
 
     print(city1 + " to " + city2 + " with Djikstra: " +
-          str(cost) + " in " + str(end-start) + " seconds")
+          str(cost) + " in " + str(end - start) + " seconds")
     time.sleep(15)
     ROOT.destroy()
 
@@ -223,9 +257,34 @@ def main():
                   node_location, neighbors, ROOT2, canvas2, map_locations)
     end = time.perf_counter()
 
-    print(city1 + " to " + city2 + " with A*: " + str(cost) + " in " + str(end-start) + " seconds")
+    print(city1 + " to " + city2 + " with A*: " + str(cost) + " in " + str(end - start) + " seconds")
     time.sleep(15)
     ROOT.destroy()
 
 
+def set_cities():
+    print("value is:" + city1.get())
+
+
 main()
+#
+#
+# master = Tk()
+#
+# city1 = StringVar(master)
+# city1.set(OPTIONS[0])  # default value
+#
+# city2 = StringVar(master)
+# city2.set(OPTIONS[0])  # default value
+#
+# w = OptionMenu(master, city1, *OPTIONS)
+# w.pack()
+#
+# z = OptionMenu(master, city1, *OPTIONS)
+# z.pack()
+#
+#
+# button = Button(master, text="OK", command=ok)
+# button.pack()
+#
+# mainloop()
