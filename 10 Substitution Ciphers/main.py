@@ -12,7 +12,7 @@ LEN_S = 26
 
 POPULATION = 500
 CLONES = 1
-MUTATION_RATE = 0.95
+MUTATION_RATE = 0.8
 TOURNAMENT_SIZE = 20
 TOURNAMENT_WIN = .75
 CROSSOVER_POINTS = 5
@@ -131,10 +131,11 @@ def main(text_var):
             if new_strat not in new_pop:
                 new_pop.append(new_strat)
         list.sort(new_pop, key=lambda strat: fitness(strat), reverse=True)
+        # print(fitness(new_pop[0]))
         print(str(gen) + ": " + decode(new_pop[0]))
         gen += 1
         current_pop = new_pop
 
 
 main(sys.argv[1])
-print(breed('ABCDEFGHIJKLMNOPQRSTUVWXYZ', shuffle_string(ALPHABET)))
+# print(breed('ABCDEFGHIJKLMNOPQRSTUVWXYZ', shuffle_string(ALPHABET)))
