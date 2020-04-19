@@ -16,7 +16,7 @@ def print_puzzle(state, size):
 
 
 def find_goal(state):
-    return(''.join(sorted(state.replace('.', '')))+".")
+    return(''.join(sorted(state.replace('.', ''))) + ".")
 
 
 def swap_characters(s, i1, i2):
@@ -31,7 +31,7 @@ def get_children(state, size):
     index = state.index('.')
 
     # To the left
-    if ((index) % int(size)) != 0:
+    if ((index - 1) % int(size)) != 0:
         boards.append(swap_characters(state, index, index - 1))
 
     # To the right
@@ -92,7 +92,7 @@ def hardest_puzzle():
     bfs_shortest_path(lastOne, 3)
     print("Second hardest puzzle: ")
     bfs_shortest_path(lastTwo, 3)
-    print("Length: " + str(len(bfs_shortest_path(lastOne, 3))-1))
+    print("Length: " + str(len(bfs_shortest_path(lastOne, 3)) - 1))
 
 
 def bfs_shortest_path(board_state, size):
@@ -179,7 +179,7 @@ def bfs(filename):
             start = time.perf_counter()
             bfs_shortest_path(puzzle, size)
             end = time.perf_counter()
-            print("Time " + str(puzzle_number) + ": " + str(end-start))
+            print("Time " + str(puzzle_number) + ": " + str(end - start))
             puzzle_number += 1
 
     # print('Line ' + str(puzzle_number) + ' start state: ')
@@ -201,7 +201,7 @@ def dfs(filename):
                 start = time.perf_counter()
                 print("Length: " + str(len(dfs_shortest_path(puzzle, size))))
                 end = time.perf_counter()
-                print("Time " + str(puzzle_number) + ": " + str(end-start))
+                print("Time " + str(puzzle_number) + ": " + str(end - start))
                 puzzle_number += 1
 
 
