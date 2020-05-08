@@ -14,6 +14,7 @@ from nltk.corpus import movie_reviews
 # 4)	In Chapter 6, complete exercise 4.
 
 
+
 def chapter2_exercise4():
     # Read in the texts of the State of the Union addresses, using the state_union corpus reader.Count occurrences of
     # men, women, and people in each document.What has happened to the usage of these words over time?
@@ -45,12 +46,12 @@ def chapter2_exercise4():
 
 def helper2_5(word):
     print(word.upper())
+    print("Member Meronyms:", [synset3.name() for synset3 in wn.synset(word).member_meronyms()])
     print("Part Meronyms:", [synset1.name() for synset1 in wn.synset(word).part_meronyms()])
     print("Substance Meronyms:", [synset2.name() for synset2 in wn.synset(word).substance_meronyms()])
-    print("Member Meronyms:", [synset3.name() for synset3 in wn.synset(word).member_meronyms()])
+    print("Member Holonyms:", [synset6.name() for synset6 in wn.synset(word).member_holonyms()])
     print("Part Holonyms:", [synset4.name() for synset4 in wn.synset(word).part_holonyms()])
     print("Substance Holonyms:", [synset5.name() for synset5 in wn.synset(word).substance_holonyms()])
-    print("Member Holonyms:", [synset6.name() for synset6 in wn.synset(word).member_holonyms()])
     print()
 
 
@@ -58,13 +59,13 @@ def chapter2_exercise5():
     # Investigate the holonym - meronym relations for some nouns.Remember that there are three kinds of
     # holonym-meronym relation, so you need to use: member_meronyms(), part_meronyms(), substance_meronyms(),
     # member_holonyms(), part_holonyms(), and substance_holonyms().
-    helper2_5('tree.n.01')
-    helper2_5('heartwood.n.01')
-    helper2_5('forest.n.01')
-    helper2_5('car.n.01')
-    helper2_5('hood.n.09')
-    helper2_5('basketball.n.01')
-    helper2_5('rebound.n.03')
+    helper2_5('meat.n.01')
+    helper2_5('plant.n.02')
+    helper2_5('pencil.n.01')
+    helper2_5('egg.n.01')
+    helper2_5('dog.n.01')
+    helper2_5('doorknob.n.01')
+    helper2_5('rock.n.02')
 
 
 def chapter2_exercise7():
@@ -121,12 +122,13 @@ def chapter2_exercise9():
 
 
 def chapter2_exercise17():
-    freq_dist = FreqDist(brown.words(categories='humor'))
-    stopwords_list = stopwords.words("english")
-    for word in freq_dist.copy():
-        if word in freq_dist and (not word.isalpha() or word in stopwords_list):
-            freq_dist.pop(word)
-    return freq_dist.most_common(50)
+    stopwords = stopwords.words("english")
+    top_50 = FreqDist(brown.words(categories='romance'))
+    temp = top_50.copy()
+    for word in temp:
+        if word in top_50 and word in stopwords:
+            top_50.pop(word)
+    return top_50.most_common(50)
 
 
 def chapter2_exercise18():
@@ -141,7 +143,7 @@ def chapter2_exercise18():
 
 
 def chapter3_exercise20():
-    url_string = "https://www.accuweather.com/en/us/ashburn/20147/weather-forecast/2160760"
+    url = "https://www.reddit.com/r/globaloffensive"
     raw_text = BeautifulSoup(request.urlopen(url_string).read().decode('utf8'), 'html.parser').get_text()
     text = nltk.Text(nltk.word_tokenize(raw_text)[:1000])
     text.concordance('the')
@@ -160,12 +162,11 @@ def document_features(document):
 
 
 def chapter6_exercise4():
-    documents = [(list(movie_reviews.words(fileid)), category) for category in movie_reviews.categories()
-                 for fileid in movie_reviews.fileids(category)]
+    documents = [(list(movie_reviews.words(fileid)), category) for category in movie_reviews.categories() for fileid in movie_reviews.fileids(category)]
     featuresets = [(document_features(d), c) for (d, c) in documents]
-    train_set, test_set = featuresets[100:], featuresets[:100]
+    train_set, test_set = featuresets[50:], featuresets[:50]
     classifier = nltk.NaiveBayesClassifier.train(train_set)
-    classifier.show_most_informative_features(30)
+    print(classifier.show_most_informative_features(30))
 
 
 
@@ -175,4 +176,3 @@ def chapter6_exercise4():
 # chapter2_exercise9()
 # chapter3_exercise20()
 chapter6_exercise4()
-
