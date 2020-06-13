@@ -1,7 +1,15 @@
 '''
 Raunak Daga | Mr. Eckel PD 5 AI
 '''
-
+import random
+# 0) The Benefits of Debugging
+# 1) How to Open Debugger
+# 2) How to Use Breakpoints
+# 3) How to Find Values of Your Variables
+# 4) How to Step Into/Out of Code
+# 5) How to Use Console
+# 6) How to Evaluate Expression
+# 7) Useful Terms
 
 def is_prime(x):
     if x == 1:
@@ -15,28 +23,24 @@ def is_prime(x):
                 return False
         return True
 
-
-# Problem 1
-print(sum(x for x in range(1000) if x % 3 == 0 or x % 5 == 0))
-
-# Problem 2
-n = 1
-lastN = 1
-sum = 0
-while n < 4000000:
-    if n % 2 == 0:
-        sum += n
-    n = n + lastN
-    lastN = n - lastN
-print(sum)
-
-# Problem 3
 max = 0
+x = random.random()
 for i in range(2, int(600851475143**(0.5))):
     if (600851475143 % i == 0):
         if(is_prime(i)):
             max = i
-print(max)
+
+
+array = []
+for i in range(10):
+    print(is_prime(i))
+
+# exit()
+# break
+# pass
+# continue
+
+
 
 # Problem 4
 max = 0
